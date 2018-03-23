@@ -4,7 +4,9 @@ getAndParse <- function(string,src){
   getSymbols(string,source = src)
   newStock <- get(string)
   colnames(newStock) <- substring(text = colnames(get(string)), first = (nchar(string) +2))
-  return(as.data.frame(newStock))
+  newData <- as.data.frame(newStock)
+  Dates <- rownames(newData)
+  return(cbind(newData,Dates))
 }
 # use getAndParse from now on instead of getSymbols
 newTWM <- getAndParse("TWMJF","google")
