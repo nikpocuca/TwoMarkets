@@ -15,9 +15,8 @@ newTWM <- getAndParse("TWMJF","google")
 checkDOW <- function(stringOYear,stringOfHoliday){
   date2Check <- paste(stringOYear,stringOfHoliday,sep = "-")
   day <- as.POSIXlt(as.Date(date2Check))$wday
-  print(day)
   check <- day %in% c(1,2,3,4,5)
-  return(check)
+  return(list(day,check))
 }
 
 sampleDates <- c("2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017")
@@ -94,9 +93,65 @@ genStockObj <- function(cName,cStkTicker,aStkTicker){
 #genTest 
 genStockObj("CanopyGrowth","WEED.TO","TWMJF")
 
-test <- createMasterList(canadianDates = canadianStringDates,
+
+# Master list creation
+masterList <- createMasterList(canadianDates = canadianStringDates,
                  americanDates = americanStringDates,
                  StockStrings = stkString)
+
+
+# Now to build extraction of dates and weeks. 
+
+
+extractDays <- function(n,day,year,type,stockData){
+  # n is for number of days forward and backword from the day of interest. 
+  dowCheck <- checkDOW(year, day)
+  if (dowCheck[[2]][1] == TRUE) {
+    if (type == "CAD") {
+    primary <- unique(stockData$CanData)
+    dates <- rownames(primary)
+    rowIndex <- match(paste(year,day,sep = "-"),dates)
+    lower <- rowIndex - n
+    upper <- rowIndex + n
+    primary <- primary[lower:upper,]
+    secondary <- unique(stockData$AmerData)
+    dates <- rownames(secondary)
+    rowIndex <- match(paste(year,day,sep = "-"),dates)
+    secondary <- secondary[lower:upper,]
+    return(list(primary = primary, secondary = secondary))
+    }
+    else{ 
+      print("Hit")
+      primary <- unique(stockData$AmerData)
+      dates <- rownames(primary)
+      rowIndex <- match(paste(year,day,sep = "-"),dates)
+      lower <- rowIndex - n
+      upper <- rowIndex + n
+      primary <- primary[lower:upper,]
+      secondary <- unique(stockData$CanData)
+      dates <- rownames(secondary)
+      rowIndex <- match(paste(year,day,sep = "-"),dates)
+      secondary <- secondary[lower:upper,]
+      return(list(primary = primary, secondary = secondary))
+    }
+  }
+  else 
+    return("Holiday falls on a weekend.")
+}
+
+testDay <- civic
+testYear <- "2016"
+
+# Depending on what you put as type you can either get the american data as primary, or canadian data as secondary. 
+# Type should be what side your primiary target should be, Ie. The stock should be open the day you targeted. 
+test <- extractDays(10,testDay,testYear,"AMER",masterList$`Berrick Gold Group`)
+
+
+
+
+
+
+
 
 
 
